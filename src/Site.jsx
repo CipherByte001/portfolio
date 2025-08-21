@@ -620,7 +620,7 @@ function Footer() {
   return (
     <footer className="border-t border-white/10 py-8 sm:py-10 text-sm">
       <Container className="flex flex-col items-center justify-between gap-4 sm:gap-6 text-center md:flex-row md:text-left">
-        <div className="opacity-80">© {new Date().getFullYear()} by Your Name</div>
+        <div className="opacity-80">© {new Date().getFullYear()} by Eitmam Omar Sanam</div>
         <form className="flex w-full max-w-md items-center gap-2 md:w-auto">
           <input type="email" placeholder="Subscribe to blog updates" className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-slate-100 outline-none focus:ring-2 focus:ring-rose-500" />
           <MagnetButton href="#">Subscribe</MagnetButton>
