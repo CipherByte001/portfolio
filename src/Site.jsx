@@ -258,11 +258,7 @@ function ParallaxCard() {
       <div className="pointer-events-none absolute inset-0 bg-black/20" />
 
       {/* Fallback logo only while loading/not ready */}
-      {!ready && (
-        <div className="pointer-events-none absolute inset-0 grid place-items-center">
-          <Logo className="h-14 w-14 sm:h-16 sm:w-16 text-white/60" />
-        </div>
-      )}
+      
     </div>
   );
 }
