@@ -245,17 +245,14 @@ function ParallaxCard() {
 
       {/* Video */}
       <video
-        src="/vid3.mp4"          // put hero.mp4 in /public
-        autoPlay
-        loop
-        muted
-        playsInline
-        onCanPlay={() => setReady(true)}
-        onLoadedData={() => setReady(true)}
-        onError={() => setReady(false)}
-        className="h-full w-full object-cover"
-        // poster="/hero-poster.jpg" // optional placeholder
-      />
+  src={`${import.meta.env.BASE_URL}vid3.mp4`}
+  autoPlay
+  loop
+  muted
+  playsInline
+  className="h-full w-full object-cover"
+/>
+
 
       {/* Optional dark overlay for contrast */}
       <div className="pointer-events-none absolute inset-0 bg-black/20" />
@@ -394,7 +391,12 @@ function About() {
         {/* Photo */}
         <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6 }} className="flex justify-center">
           <div className="relative h-44 w-44 sm:h-56 sm:w-56 md:h-64 md:w-64 overflow-hidden rounded-full ring-4 ring-rose-500/30 shadow-xl shadow-rose-500/20">
-            <img src="/sanam2.jpg" alt="Eitmam Omar Sanam" className="h-full w-full object-cover" />
+            <img
+  src={`${import.meta.env.BASE_URL}sanam.jpg`}
+  alt="Eitmam Omar Sanam"
+  className="h-full w-full object-cover"
+/>
+
           </div>
         </motion.div>
 
