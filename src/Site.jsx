@@ -4,7 +4,7 @@ import { motion, AnimatePresence, useScroll, useSpring, useTransform } from "fra
 // ===== Portfolio Site (Mobile-Optimized) =====
 // - Sticky Nav with mobile hamburger
 // - Hero
-// - Projects (cards + modal)
+// - Projects (cards + modal) with pagination & lazy loading
 // - About, Skills, Academics, Blog, Timeline
 // - CTA, Contact, Footer
 // - All helpers in this file (no external imports)
@@ -114,6 +114,22 @@ function TiltCard({ children, className = "" }) {
 
 function Spotlight({ className = "" }) {
   return <div className={`pointer-events-none absolute inset-0 bg-[radial-gradient(600px_300px_at_var(--x,50%)_var(--y,30%),rgba(56,189,248,0.12),transparent)] ${className}`} />;
+}
+
+// Lazy mount wrapper for heavy content (thumbs, etc.)
+function InView({ children, rootMargin = '200px' }) {
+  const ref = useRef(null);
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || show) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setShow(true); obs.disconnect(); }
+    }, { rootMargin });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [show, rootMargin]);
+  return <div ref={ref}>{show ? children : <div className="aspect-video w-full" />}</div>;
 }
 
 // =====================
@@ -323,10 +339,19 @@ function Projects() {
   const [activeTags, setActiveTags] = useState([]);
   const [activeProject, setActiveProject] = useState(null);
 
+  // Pagination state
+  const PAGE_SIZE = 9; // show 9 cards per page
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [activeTags]);
   const filtered = useMemo(() => {
     if (!activeTags.length) return allProjects;
     return allProjects.filter(p => activeTags.every(t => p.tags.includes(t)));
   }, [allProjects, activeTags]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageItems = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page]
+  );
 
   function toggleTag(tag) {
     setActiveTags((cur) => cur.includes(tag) ? cur.filter(t => t !== tag) : [...cur, tag]);
@@ -346,28 +371,30 @@ function Projects() {
 
       {/* Grid */}
       <motion.div className="mt-8 sm:mt-10 grid grid-cols-1 gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3" initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6 }}>
-        {filtered.map((p) => {
+        {pageItems.map((p) => {
           const visibleTags = (p.tags || []).slice(0, 2);
           const extra = (p.tags || []).length - visibleTags.length;
           return (
             <TiltCard key={p.id}>
               <button onClick={() => setActiveProject(p)} className="block w-full text-left">
                 <div className="mb-4 aspect-video w-full overflow-hidden rounded-xl bg-[#0b0f14]">
-                  {p.media.type === "youtube" ? (
-                    p.media.thumb ? (
-                      <img src={p.media.thumb} alt={`${p.title} thumbnail`} className="h-full w-full object-cover" />
-                    ) : (
-                      <VideoPlaceholder />
-                    )
-                  ) : p.media.type === "video" ? (
-                    p.media.thumb ? (
-                      <img src={p.media.thumb} alt={`${p.title} thumbnail`} className="h-full w-full object-cover" />
-                    ) : <VideoPlaceholder />
-                  ) : p.media.type === "image" ? (
-                    p.media.src ? (
-                      <img src={p.media.src} alt={p.title} className="h-full w-full object-cover" />
-                    ) : <ImagePlaceholder />
-                  ) : null}
+                  <InView>
+                    {p.media.type === "youtube" ? (
+                      p.media.thumb ? (
+                        <img src={p.media.thumb} alt={`${p.title} thumbnail`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                      ) : (
+                        <VideoPlaceholder />
+                      )
+                    ) : p.media.type === "video" ? (
+                      p.media.thumb ? (
+                        <img src={p.media.thumb} alt={`${p.title} thumbnail`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                      ) : <VideoPlaceholder />
+                    ) : p.media.type === "image" ? (
+                      p.media.src ? (
+                        <img src={p.media.src} alt={p.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                      ) : <ImagePlaceholder />
+                    ) : null}
+                  </InView>
                 </div>
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -391,6 +418,25 @@ function Projects() {
           );
         })}
       </motion.div>
+
+      {/* Pagination controls */}
+      <div className="mt-6 flex items-center justify-center gap-2">
+        <button
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={page === 1}
+          className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-slate-200 disabled:opacity-40"
+        >
+          Prev
+        </button>
+        <span className="text-xs text-slate-400">Page {page} / {totalPages}</span>
+        <button
+          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          disabled={page === totalPages}
+          className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-slate-200 disabled:opacity-40"
+        >
+          Next
+        </button>
+      </div>
 
       <ProjectModal project={activeProject} onClose={() => setActiveProject(null)} />
     </Section>
@@ -428,6 +474,7 @@ function ProjectModal({ project, onClose }) {
                   key={project.id}
                   src={`https://www.youtube.com/embed/${project.media.id}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`}
                   title={project.title}
+                  loading="lazy"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   className="h-full w-full"
@@ -517,6 +564,7 @@ function About() {
               src={`${base}sanam.jpg`}
               alt="Eitmam Omar Sanam"
               className="h-full w-full object-cover"
+              loading="lazy" decoding="async"
             />
           </div>
         </motion.div>
@@ -690,7 +738,7 @@ function BlogModal({ post, onClose }) {
           <motion.article className="w-full max-w-3xl overflow-hidden rounded-2xl bg-[#0f141d] ring-1 ring-white/10" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}>
             {post.cover ? (
               <div className="relative w-full overflow-hidden bg-black">
-                <img src={post.cover} alt={`${post.title} cover`} className="w-full max-h-64 object-cover" />
+                <img src={post.cover} alt={`${post.title} cover`} className="w-full max-h-64 object-cover" loading="lazy" decoding="async" />
               </div>
             ) : null}
             <div className="p-5 sm:p-6">
