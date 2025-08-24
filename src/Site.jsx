@@ -117,19 +117,9 @@ function Spotlight({ className = "" }) {
 }
 
 // Lazy mount wrapper for heavy content (thumbs, etc.)
-function InView({ children, rootMargin = '200px' }) {
-  const ref = useRef(null);
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || show) return;
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setShow(true); obs.disconnect(); }
-    }, { rootMargin });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [show, rootMargin]);
-  return <div ref={ref}>{show ? children : <div className="aspect-video w-full" />}</div>;
+// >>> Disabled lazy-loading: render immediately
+function InView({ children }) {
+  return <>{children}</>;
 }
 
 // =====================
@@ -185,7 +175,7 @@ function Nav() {
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="md:hidden">
             <Container className="space-y-1 pb-4">
               {items.map((it) => (
-                <a key={it.label} href={it.href} onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-slate-200 hover:bg-white/5">
+                <a key={it.label} href={it.href} onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-slate-200 hover:bg:white/5">
                   {it.label}
                 </a>
               ))}
@@ -339,19 +329,11 @@ function Projects() {
   const [activeTags, setActiveTags] = useState([]);
   const [activeProject, setActiveProject] = useState(null);
 
-  // Pagination state
-  const PAGE_SIZE = 9; // show 9 cards per page
-  const [page, setPage] = useState(1);
-  useEffect(() => { setPage(1); }, [activeTags]);
+  // Removed pagination: show all filtered items
   const filtered = useMemo(() => {
     if (!activeTags.length) return allProjects;
     return allProjects.filter(p => activeTags.every(t => p.tags.includes(t)));
   }, [allProjects, activeTags]);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const pageItems = useMemo(
-    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-    [filtered, page]
-  );
 
   function toggleTag(tag) {
     setActiveTags((cur) => cur.includes(tag) ? cur.filter(t => t !== tag) : [...cur, tag]);
@@ -369,33 +351,73 @@ function Projects() {
         ))}
       </div>
 
-      {/* Grid */}
+      {/* Grid (render ALL filtered items, thumbs eager) */}
       <motion.div className="mt-8 sm:mt-10 grid grid-cols-1 gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3" initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6 }}>
-        {pageItems.map((p) => {
+        {filtered.map((p) => {
           const visibleTags = (p.tags || []).slice(0, 2);
           const extra = (p.tags || []).length - visibleTags.length;
           return (
             <TiltCard key={p.id}>
               <button onClick={() => setActiveProject(p)} className="block w-full text-left">
                 <div className="mb-4 aspect-video w-full overflow-hidden rounded-xl bg-[#0b0f14]">
-                  <InView>
-                    {p.media.type === "youtube" ? (
-                      p.media.thumb ? (
-                        <img src={p.media.thumb} alt={`${p.title} thumbnail`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                      ) : (
-                        <VideoPlaceholder />
-                      )
-                    ) : p.media.type === "video" ? (
-                      p.media.thumb ? (
-                        <img src={p.media.thumb} alt={`${p.title} thumbnail`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                      ) : <VideoPlaceholder />
-                    ) : p.media.type === "image" ? (
-                      p.media.src ? (
-                        <img src={p.media.src} alt={p.title} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                      ) : <ImagePlaceholder />
-                    ) : null}
-                  </InView>
-                </div>
+  <InView>
+    {p.media.type === "youtube" ? (
+      <>
+        {/* Keep showing your thumbnail */}
+        {p.media.thumb ? (
+          <img
+            src={p.media.thumb}
+            alt={`${p.title} thumbnail`}
+            className="h-full w-full object-cover"
+            loading="eager"
+            decoding="sync"
+            fetchpriority="high"
+          />
+        ) : (
+          <VideoPlaceholder />
+        )}
+
+        {/* Hidden iframe preloads YouTube in background */}
+        <iframe
+          src={`https://www.youtube.com/embed/${p.media.id}?rel=0&modestbranding=1&playsinline=1`}
+          title={`${p.title} preloader`}
+          style={{ display: "none" }}
+          tabIndex={-1}
+          aria-hidden="true"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </>
+    ) : p.media.type === "video" ? (
+      p.media.thumb ? (
+        <img
+          src={p.media.thumb}
+          alt={`${p.title} thumbnail`}
+          className="h-full w-full object-cover"
+          loading="eager"
+          decoding="sync"
+          fetchpriority="high"
+        />
+      ) : (
+        <VideoPlaceholder />
+      )
+    ) : p.media.type === "image" ? (
+      p.media.src ? (
+        <img
+          src={p.media.src}
+          alt={p.title}
+          className="h-full w-full object-cover"
+          loading="eager"
+          decoding="sync"
+          fetchpriority="high"
+        />
+      ) : (
+        <ImagePlaceholder />
+      )
+    ) : null}
+  </InView>
+</div>
+
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="text-base sm:text-lg font-semibold text-white">{p.title}</h3>
@@ -419,25 +441,7 @@ function Projects() {
         })}
       </motion.div>
 
-      {/* Pagination controls */}
-      <div className="mt-6 flex items-center justify-center gap-2">
-        <button
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={page === 1}
-          className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-slate-200 disabled:opacity-40"
-        >
-          Prev
-        </button>
-        <span className="text-xs text-slate-400">Page {page} / {totalPages}</span>
-        <button
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          disabled={page === totalPages}
-          className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-slate-200 disabled:opacity-40"
-        >
-          Next
-        </button>
-      </div>
-
+      {/* Pagination controls removed */}
       <ProjectModal project={activeProject} onClose={() => setActiveProject(null)} />
     </Section>
   );
@@ -572,7 +576,7 @@ function About() {
         {/* Text */}
         <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }} className="text-center md:text-left">
           <p className="text-sm font-semibold tracking-wider text-rose-400">About Me</p>
-          <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-white">Building at the edge of electronics and intelligence</h2>
+          <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text:white">Building at the edge of electronics and intelligence</h2>
           <p className="mt-4 text-slate-300 text-sm sm:text-base">
             I’m an undergraduate student in Electrical and Electronics Engineering with a strong interest in hardware, robotics, and embedded systems. Most of my time goes into Programming and making project with STM32 , Arduino , Esp32  microcontrollers, PCB design and experimenting with sensors to bring ideas to life.
 
@@ -585,7 +589,7 @@ What excites me most is problem-solving and tinkering — taking something from 
               <div className="text-xs uppercase tracking-wide text-slate-400">Focus</div>
               <div className="mt-1 text-sm text-slate-200">IoT • Embedded • ML</div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-[#0f141d] p-4">
+            <div className="rounded-2xl border border:white/10 bg-[#0f141d] p-4">
               <div className="text-xs uppercase tracking-wide text-slate-400">Currently</div>
               <div className="mt-1 text-sm text-slate-200">Programming with STM32</div>
             </div>
@@ -734,7 +738,7 @@ function BlogModal({ post, onClose }) {
   return (
     <AnimatePresence>
       {post && (
-        <motion.div className="fixed inset-0 z-[85] grid place-items-center bg-black/70 p-4 sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={(e)=>{ if(e.target === e.currentTarget) onClose(); }}>
+        <motion.div className="fixed inset-0 z:[85] grid place-items-center bg-black/70 p-4 sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={(e)=>{ if(e.target === e.currentTarget) onClose(); }}>
           <motion.article className="w-full max-w-3xl overflow-hidden rounded-2xl bg-[#0f141d] ring-1 ring-white/10" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}>
             {post.cover ? (
               <div className="relative w-full overflow-hidden bg-black">
@@ -838,7 +842,7 @@ function Footer() {
     <footer className="border-t border-white/10 py-8 sm:py-10 text-sm">
       <Container className="flex flex-col items-center justify-between gap-4 sm:gap-6 text-center md:flex-row md:text-left">
         <div className="opacity-80">© {new Date().getFullYear()} by Eitmam Omar Sanam</div>
-        <form className="flex w-full max-w-md items-center gap-2 md:w-auto">
+        <form className="flex w/full max-w-md items-center gap-2 md:w-auto">
           <input type="email" placeholder="Subscribe to blog updates" className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-slate-100 outline-none focus:ring-2 focus:ring-rose-500" />
           <MagnetButton href="#">Subscribe</MagnetButton>
         </form>
