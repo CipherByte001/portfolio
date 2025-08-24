@@ -361,12 +361,12 @@ function Projects() {
           return (
             <TiltCard key={p.id}>
               <button onClick={() => setActiveProject(p)} className="block w-full text-left">
-                <div className="mb-4 aspect-video w-full overflow-hidden rounded-xl bg-[#0b0f14]">
-  <InView>
-    {p.media.type === "youtube" ? (
-      <>
-        {/* Keep showing your thumbnail */}
-        {p.media.thumb ? (
+     <>
+  <div className="mb-4 aspect-video w-full overflow-hidden rounded-xl bg-[#0b0f14]">
+    <InView>
+      {p.media.type === "youtube" ? (
+        // visible thumbnail stays exactly the same
+        p.media.thumb ? (
           <img
             src={p.media.thumb}
             alt={`${p.title} thumbnail`}
@@ -377,48 +377,58 @@ function Projects() {
           />
         ) : (
           <VideoPlaceholder />
-        )}
+        )
+      ) : p.media.type === "video" ? (
+        p.media.thumb ? (
+          <img
+            src={p.media.thumb}
+            alt={`${p.title} thumbnail`}
+            className="h-full w-full object-cover"
+            loading="eager"
+            decoding="sync"
+            fetchpriority="high"
+          />
+        ) : (
+          <VideoPlaceholder />
+        )
+      ) : p.media.type === "image" ? (
+        p.media.src ? (
+          <img
+            src={p.media.src}
+            alt={p.title}
+            className="h-full w-full object-cover"
+            loading="eager"
+            decoding="sync"
+            fetchpriority="high"
+          />
+        ) : (
+          <ImagePlaceholder />
+        )
+      ) : null}
+    </InView>
+  </div>
 
-        {/* Hidden iframe preloads YouTube in background */}
-        <iframe
-          src={`https://www.youtube.com/embed/${p.media.id}?rel=0&modestbranding=1&playsinline=1`}
-          title={`${p.title} preloader`}
-          style={{ display: "none" }}
-          tabIndex={-1}
-          aria-hidden="true"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
-      </>
-    ) : p.media.type === "video" ? (
-      p.media.thumb ? (
-        <img
-          src={p.media.thumb}
-          alt={`${p.title} thumbnail`}
-          className="h-full w-full object-cover"
-          loading="eager"
-          decoding="sync"
-          fetchpriority="high"
-        />
-      ) : (
-        <VideoPlaceholder />
-      )
-    ) : p.media.type === "image" ? (
-      p.media.src ? (
-        <img
-          src={p.media.src}
-          alt={p.title}
-          className="h-full w-full object-cover"
-          loading="eager"
-          decoding="sync"
-          fetchpriority="high"
-        />
-      ) : (
-        <ImagePlaceholder />
-      )
-    ) : null}
-  </InView>
-</div>
+  {/* Off-screen but rendered iframe to preload YouTube (no layout/visual change) */}
+  {p.media.type === "youtube" && (
+    <iframe
+      src={`https://www.youtube.com/embed/${p.media.id}?rel=0&modestbranding=1&playsinline=1`}
+      title={`${p.title} preloader`}
+      style={{
+        position: "absolute",
+        left: "-10000px",
+        top: 0,
+        width: "1px",
+        height: "1px",
+        opacity: 0.01
+      }}
+      tabIndex={-1}
+      aria-hidden="true"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowFullScreen
+    />
+  )}
+</>
+
 
                 <div className="flex items-start justify-between gap-4">
                   <div>
