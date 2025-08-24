@@ -265,13 +265,15 @@ function ParallaxCard() {
         className="pointer-events-none absolute -right-8 -bottom-8 h-40 sm:h-48 w-40 sm:w-48 rounded-full bg-sky-500/30 blur-2xl"
       />
 
-      {/* Local hero video (unchanged) */}
+       {/* Local hero video (improved) */}
       <video
         src={`${base}vid3.mp4`}
         autoPlay
         loop
         muted
         playsInline
+        preload="auto"
+        poster={`${base}vid3-poster.jpg`}   // <-- add a jpg/png poster image in your public folder
         className="h-full w-full object-cover"
       />
 
