@@ -300,12 +300,46 @@ function Projects() {
     },
     {
       id: 2,
-      title: "Quadcopter Flight Controller",
-      excerpt: "PID tuning & telemetry over serial.",
-      desc: "PID tuning, IMU fusion, RC input capture, and live telemetry dashboard. Includes arming logic, failsafe, and configurable PID profiles.",
-      tags: ["Robotics", "Control", "C++"],
-      components: ["STM32F103", "MPU6050", "nRF24"],
-      media: { type: "image", src: `${base}sana.jpg`, thumb: `${base}sana.jpg` }
+      title: "Email Spam Classification Using Machine Learning",
+      excerpt:"Built an ML-based email spam filter using Logistic Regression and NLP (TF-IDF). Achieved strong accuracy and deployed a real-time web demo.",
+      desc: (
+    <div className="prose prose-invert max-w-none text-slate-300">
+      <h4 className="text-white font-semibold">Overview</h4>
+      <p>
+        This project demonstrates a machine learning–based spam email classifier. 
+        It leverages Natural Language Processing (NLP) and TF-IDF features to 
+        transform raw email text into structured numerical data that Logistic Regression 
+        can learn from, ensuring accurate spam vs ham predictions.
+      </p>
+
+      <h4 className="text-white font-semibold mt-4">Workflow</h4>
+      <ul className="list-disc pl-5 space-y-1">
+        <li>Cleaning, tokenization, stop-word removal</li>
+        <li>TF-IDF feature extraction</li>
+        <li>Evaluation with accuracy, precision, recall, F1</li>
+      </ul>
+
+      <h4 className="text-white font-semibold mt-4">Deployment & Demo</h4>
+      <ul className="list-disc pl-5 space-y-1">
+        <li>Web demo with instant spam / ham prediction</li>
+      </ul>
+
+      <h4 className="text-white font-semibold mt-4">Applications</h4>
+      <ul className="list-disc pl-5 space-y-1">
+        <li>Email clients (Gmail / Outlook)</li>
+        <li>Enterprise anti-phishing & security</li>
+      </ul>
+
+      <h4 className="text-white font-semibold mt-4">Key Takeaways</h4>
+      <ul className="list-disc pl-5 space-y-1">
+        <li>Hands-on NLP in Python</li>
+        <li>End-to-end model deployment</li>
+      </ul>
+    </div>
+  ),
+      tags: ["Machine Learning", "Spam Classification", "Logistic Regression" ,"Python"],
+      components: ["Anaconda", "VS Code"],
+      media: { type: "youtube", id: "Le5HsRq_mWM", thumb: `${base}images.jpeg` }
     },
     {
       id: 3,
@@ -458,94 +492,115 @@ function Projects() {
     </Section>
   );
 }
-
 function ProjectModal({ project, onClose }) {
   const videoRef = useRef(null);
+
+  // Close on Esc
   useEffect(() => {
     if (!project) return;
-    function onKey(e){ if (e.key === 'Escape') onClose(); }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [project, onClose]);
 
-  // Autoplay for <video>; YouTube handled via URL params
+  // Autoplay for <video>; (YouTube uses URL params)
   useEffect(() => {
     const v = videoRef.current;
     if (!project || !v) return;
-    if (project.media?.type === 'video') {
-      const playPromise = v.play();
-      if (playPromise && typeof playPromise.then === 'function') playPromise.catch(() => {});
+    if (project.media?.type === "video") {
+      const p = v.play();
+      if (p && typeof p.then === "function") p.catch(() => {});
     }
   }, [project]);
 
   return (
     <AnimatePresence>
       {project && (
-        <motion.div className="fixed inset-0 z-[80] grid place-items-center bg-black/70 p-4 sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={(e)=>{ if(e.target === e.currentTarget) onClose(); }}>
-          <motion.div className="w-full max-w-5xl overflow-hidden rounded-2xl bg-[#0f141d] ring-1 ring-white/10" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}>
-            {/* Media */}
-            <div className="aspect-video w-full bg-black">
-              {project.media?.type === 'youtube' ? (
-                <iframe
-                  key={project.id}
-                  src={`https://www.youtube.com/embed/${project.media.id}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`}
-                  title={project.title}
-                  loading="lazy"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="h-full w-full"
-                />
-              ) : project.media?.type === 'video' ? (
-                <video
-                  key={project.id}
-                  ref={videoRef}
-                  src={project.media.src || ''}
-                  poster={project.media.thumb || undefined}
-                  controls
-                  autoPlay
-                  playsInline
-                  className="h-full w-full object-contain"
-                />
-              ) : project.media?.type === 'image' ? (
-                project.media.src ? <img src={project.media.src} alt={project.title} className="h-full w-full object-contain" /> : <ImagePlaceholder />
-              ) : (
-                <ImagePlaceholder />
-              )}
-            </div>
+        <motion.div
+          className="fixed inset-0 z-[80] grid place-items-center bg-black/70 p-4 sm:p-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+        >
+          {/* Modal container with a fixed max height; body scrolls */}
+          <motion.div
+  className="w-full max-w-5xl rounded-2xl bg-[#0f141d] ring-1 ring-white/10
+             max-h-[90vh] overflow-y-auto"
+  initial={{ y: 20, opacity: 0 }}
+  animate={{ y: 0, opacity: 1 }}
+  exit={{ y: 20, opacity: 0 }}
+>
+  {/* Media */}
+  <div className="aspect-video w-full bg-black">
+    {project.media?.type === 'youtube' ? (
+      <iframe
+        key={project.id}
+        src={`https://www.youtube.com/embed/${project.media.id}?autoplay=1&mute=1&rel=0&modestbranding=1&playsinline=1`}
+        title={project.title}
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+        className="h-full w-full"
+      />
+    ) : project.media?.type === 'video' ? (
+      <video
+        key={project.id}
+        ref={videoRef}
+        src={project.media.src || ''}
+        poster={project.media.thumb || undefined}
+        controls
+        autoPlay
+        playsInline
+        className="h-full w-full object-contain"
+      />
+    ) : project.media?.type === 'image' ? (
+      project.media.src ? (
+        <img src={project.media.src} alt={project.title} className="h-full w-full object-contain" />
+      ) : (
+        <ImagePlaceholder />
+      )
+    ) : (
+      <ImagePlaceholder />
+    )}
+  </div>
 
-            {/* Details */}
-            <div className="flex flex-col gap-4 p-4 sm:p-6">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-white">{project.title}</h3>
-                  <p className="mt-1 text-sm sm:text-base text-slate-300 whitespace-pre-wrap">{project.desc}</p>
-                </div>
-                <MagnetButton href={null} onClick={onClose} className="px-4 py-2 text-xs">Close</MagnetButton>
-              </div>
+  {/* Details */}
+  <div className="flex flex-col gap-4 p-4 sm:p-6">
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h3 className="text-lg sm:text-xl font-semibold text-white">{project.title}</h3>
+        <p className="mt-1 text-sm sm:text-base text-slate-300 whitespace-pre-wrap">{project.desc}</p>
+      </div>
+      <MagnetButton href={null} onClick={onClose} className="px-4 py-2 text-xs">Close</MagnetButton>
+    </div>
 
-              {Array.isArray(project.components) && project.components.length > 0 && (
-                <div>
-                  <div className="mb-2 text-xs uppercase tracking-wide text-slate-400">Main Components</div>
-                  <div className="flex flex-wrap gap-2">
-                    {project.components.map((c) => (
-                      <span key={c} className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-slate-200">{c}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
+    {Array.isArray(project.components) && project.components.length > 0 && (
+      <div>
+        <div className="mb-2 text-xs uppercase tracking-wide text-slate-400">Main Components</div>
+        <div className="flex flex-wrap gap-2">
+          {project.components.map((c) => (
+            <span key={c} className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-slate-200">{c}</span>
+          ))}
+        </div>
+      </div>
+    )}
 
-              <div className="flex flex-wrap gap-2">
-                {project.tags?.map((t) => (
-                  <span key={t} className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-slate-300">#{t}</span>
-                ))}
-              </div>
-            </div>
-          </motion.div>
+    <div className="flex flex-wrap gap-2">
+      {project.tags?.map((t) => (
+        <span key={t} className="rounded-full border border-white/10 px-2.5 py-1 text-[11px] text-slate-300">#{t}</span>
+      ))}
+    </div>
+  </div>
+</motion.div>
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
+
 
 function ImagePlaceholder() {
   return (
