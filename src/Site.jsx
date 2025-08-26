@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useScroll, useSpring, useTransform } from "framer-motion";
 
+
+
 // ===== Portfolio Site (Mobile-Optimized) =====
 // - Sticky Nav with mobile hamburger
 // - Hero
@@ -25,11 +27,41 @@ export function getBaseUrl() {
   return base;
 }
 
+function GlobalStyles() {
+  return (
+    <style>{`
+      @keyframes caret-blink { 0%, 49% {opacity:1} 50%, 100% {opacity:0} }
+      @keyframes shimmer { 0% {background-position: 0% 50%} 100% {background-position: 200% 50%} }
+      @keyframes ripple { to { transform: scale(2.6); opacity: 0; } }
+      @keyframes caret-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+      @keyframes shimmer { 0% {background-position: 0% 50%} 100% {background-position: 200% 50%} }
+      @keyframes floatY   { 0% {transform: translateY(0)} 100% {transform: translateY(-16px)} }
+       @keyframes ringSpin { to { transform: rotate(360deg); } }
+      .fancy-link { position: relative; }
+      .fancy-link::after{
+        content:""; position:absolute; left:0; bottom:-2px; height:2px; width:100%;
+        background: linear-gradient(90deg,#fb7185,#a78bfa,#38bdf8);
+        transform: scaleX(0); transform-origin: left; transition: transform .35s ease;
+      }
+      .fancy-link:hover::after{ transform: scaleX(1); }
+      .btn-ripple{ position:relative; overflow:hidden; }
+      .btn-ripple span.__r{
+        position:absolute; inset:0; border-radius:9999px;
+        background: radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,255,255,.35), transparent 60%);
+        transform: translateZ(0) scale(0); opacity:.6; animation: ripple .6s ease-out forwards;
+        pointer-events:none;
+      }
+    `}</style>
+  );
+}
+
+
 // =====================
 // Root component
 export default function Site() {
   return (
     <main className="min-h-screen bg-[#0b0f14] text-slate-100 antialiased selection:bg-rose-500/30">
+       <GlobalStyles />
       <ScrollProgressBar />
       <Nav />
       <Hero />
@@ -196,6 +228,453 @@ function Nav() {
 }
 
 // =====================
+function Typewriter({
+  words = [],
+  typeSpeed = 80,
+  deleteSpeed = 45,
+  pauseAfterType = 900,
+  className = "",
+}) {
+  const [i, setI] = useState(0);
+  const [txt, setTxt] = useState("");
+  const [phase, setPhase] = useState("typing"); // typing | pausing | deleting
+
+  useEffect(() => {
+    if (!words.length) return;
+    const w = words[i % words.length];
+
+    if (phase === "typing") {
+      if (txt.length < w.length) {
+        const t = setTimeout(() => setTxt(w.slice(0, txt.length + 1)), typeSpeed);
+        return () => clearTimeout(t);
+      }
+      const t = setTimeout(() => setPhase("pausing"), pauseAfterType);
+      return () => clearTimeout(t);
+    }
+
+    if (phase === "pausing") {
+      const t = setTimeout(() => setPhase("deleting"), 450);
+      return () => clearTimeout(t);
+    }
+
+    if (phase === "deleting") {
+      if (txt.length > 0) {
+        const t = setTimeout(() => setTxt(w.slice(0, txt.length - 1)), deleteSpeed);
+        return () => clearTimeout(t);
+      }
+      setI((v) => (v + 1) % words.length);
+      setPhase("typing");
+    }
+  }, [txt, phase, i, words, typeSpeed, deleteSpeed, pauseAfterType]);
+
+  return (
+  <span className={`inline break-words [word-break:break-word] ${className}`}>
+    <span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-400 via-fuchsia-400 to-sky-400">
+      {txt}
+    </span>
+    <span
+      aria-hidden="true"
+      className="ml-[2px] inline-block h-[1em] w-[2px] align-[-0.1em] bg-gradient-to-b from-rose-400 to-sky-400"
+      style={{ animation: "caret-blink 1s step-end infinite" }}
+    />
+  </span>
+);
+
+}
+function HeroParticles() {
+  // simple static particle set; animate with CSS and a bit of random delay
+  const dots = Array.from({ length: 18 }).map((_, i) => ({
+    left: Math.random() * 70 + "%",       // keep mostly in left column
+    top: Math.random() * 70 + "%",        // avoid edges
+    size: Math.random() * 6 + 4,          // 4–10px
+    delay: Math.random() * 2000,          // ms
+    duration: 4000 + Math.random() * 3500 // ms up/down
+  }));
+
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
+      style={{ maskImage: "radial-gradient(60% 60% at 30% 40%, #000 60%, transparent)" }}
+    >
+      {dots.map((d, i) => (
+        <span
+          key={i}
+          className="absolute rounded-full bg-sky-400/20"
+          style={{
+            left: d.left,
+            top: d.top,
+            width: d.size,
+            height: d.size,
+            filter: "blur(0.5px)",
+            animation: `floatY ${d.duration}ms ease-in-out ${d.delay}ms infinite alternate`
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+//dot network
+function ParticleNetwork({
+  className = "",
+  colorStart = "rgba(244,63,94,0.9)", // rose-500
+  colorEnd   = "rgba(56,189,248,0.9)", // sky-400
+}) {
+  const ref = React.useRef(null);
+  const pointer = React.useRef({ x: -9999, y: -9999, active: false });
+  const stopRef = React.useRef(false);
+
+  React.useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    function fit() {
+      const r = canvas.getBoundingClientRect();
+      canvas.width = Math.floor(r.width * dpr);
+      canvas.height = Math.floor(r.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(canvas);
+
+    // fewer, slower particles
+    const particles = [];
+    const rect = canvas.getBoundingClientRect();
+    const count = 45; // calm number of dots
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.05 + Math.random() * 0.1; // very slow
+      particles.push({
+        x: Math.random() * rect.width,
+        y: Math.random() * rect.height,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        r: 1.5 + Math.random() * 1.5,
+      });
+    }
+
+    // gradient
+    function makeGradient() {
+      const r = canvas.getBoundingClientRect();
+      const g = ctx.createLinearGradient(0, 0, r.width, 0);
+      g.addColorStop(0, colorStart);
+      g.addColorStop(1, colorEnd);
+      return g;
+    }
+    let grad = makeGradient();
+
+    function onMove(e) {
+      const r = canvas.getBoundingClientRect();
+      pointer.current.x = e.clientX - r.left;
+      pointer.current.y = e.clientY - r.top;
+      pointer.current.active = true;
+    }
+    function onLeave() {
+      pointer.current.active = false;
+    }
+    canvas.addEventListener("mousemove", onMove);
+    canvas.addEventListener("mouseleave", onLeave);
+
+    stopRef.current = false;
+    function loop() {
+      if (stopRef.current) return;
+      const r = canvas.getBoundingClientRect();
+      if (canvas.width / dpr !== Math.floor(r.width) || canvas.height / dpr !== Math.floor(r.height)) {
+        fit(); grad = makeGradient();
+      }
+
+      ctx.clearRect(0, 0, r.width, r.height);
+
+      // move
+      for (const p of particles) {
+        if (pointer.current.active) {
+          const dx = pointer.current.x - p.x;
+          const dy = pointer.current.y - p.y;
+          const dist2 = dx * dx + dy * dy;
+          if (dist2 < 200 * 200) {
+            p.vx += dx * 0.00002;
+            p.vy += dy * 0.00002;
+          }
+        }
+
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = r.width;
+        if (p.x > r.width) p.x = 0;
+        if (p.y < 0) p.y = r.height;
+        if (p.y > r.height) p.y = 0;
+      }
+
+      // draw
+      ctx.fillStyle = grad;
+      for (const p of particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // links
+      ctx.strokeStyle = grad;
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const a = particles[i], b = particles[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d = Math.hypot(dx, dy);
+          if (d < 120) {
+            ctx.globalAlpha = 1 - d / 120;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    return () => {
+      stopRef.current = true;
+      canvas.removeEventListener("mousemove", onMove);
+      canvas.removeEventListener("mouseleave", onLeave);
+      ro.disconnect();
+    };
+  }, [colorStart, colorEnd]);
+
+  return (
+    <canvas
+      ref={ref}
+      className={`absolute inset-0 w-full h-full ${className}`}
+      aria-hidden
+    />
+  );
+}
+
+//nural network
+function NeuralNetworkVisualizer({
+  className = "",
+  layers = [3, 6, 5, 3],     // nodes per layer
+  nodeRadius = 3.2,
+  edgeColorA = "rgba(244,63,94,0.9)",   // rose-500
+  edgeColorB = "rgba(56,189,248,0.9)",  // sky-400
+  nodeColor = "rgba(255,255,255,0.9)",
+  backgroundFade = 1,        // 1 = hard clear; 0.03..0.08 = faint trails
+  pulseRate = 6,             // pulses per second
+  baseSpeed = 0.18,          // pulse speed (lower = calmer)
+  linkDistanceBoost = 0,     // leave 0 (edge alpha falloff is handled per-edge)
+}) {
+  const canvasRef = useRef(null);
+  const stopRef = useRef(false);
+  const pointer = useRef({ x: -9999, y: -9999, active: false });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    // DPR & sizing
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    function fit() {
+      const r = canvas.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.floor(r.width * dpr));
+      canvas.height = Math.max(1, Math.floor(r.height * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(canvas);
+
+    // pause when not visible
+    let isVisible = true;
+    const io = new IntersectionObserver(
+      ([en]) => (isVisible = en.isIntersecting),
+      { threshold: 0.1 }
+    );
+    io.observe(canvas);
+
+    // reduced motion
+    const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+    // pointer
+    function onMove(e) {
+      const r = canvas.getBoundingClientRect();
+      pointer.current.x = e.clientX - r.left;
+      pointer.current.y = e.clientY - r.top;
+      pointer.current.active = true;
+    }
+    function onLeave() {
+      pointer.current.active = false;
+      pointer.current.x = -9999; pointer.current.y = -9999;
+    }
+    canvas.addEventListener("mousemove", onMove);
+    canvas.addEventListener("mouseleave", onLeave);
+
+    // build network
+    function layoutNodes(w, h) {
+      const L = layers.length;
+      const left = 48, right = w - 48;
+      const top = 36, bot = h - 36;
+      const xs = Array.from({ length: L }, (_, i) => L === 1 ? (left + right) / 2 : left + (right - left) * (i / (L - 1)));
+      const nodes = [];
+      for (let li = 0; li < L; li++) {
+        const count = Math.max(1, layers[li]);
+        for (let n = 0; n < count; n++) {
+          const y = count === 1 ? (top + bot) / 2 : top + (bot - top) * (n / (count - 1));
+          nodes.push({ x: xs[li], y, li, idx: n });
+        }
+      }
+      // edges fully connect adjacent layers
+      const edges = [];
+      let idxOffset = 0;
+      for (let li = 0; li < L - 1; li++) {
+        const aCount = layers[li], bCount = layers[li + 1];
+        for (let a = 0; a < aCount; a++) {
+          for (let b = 0; b < bCount; b++) {
+            const A = nodes[idxOffset + a];
+            const B = nodes[idxOffset + aCount + b];
+            edges.push({ A, B, len: Math.hypot(B.x - A.x, B.y - A.y) });
+          }
+        }
+        idxOffset += aCount;
+      }
+      return { nodes, edges };
+    }
+
+    // pulses
+    const pulses = []; // {A,B,t,speed}
+    function spawnPulse(edgesNow) {
+      if (!edgesNow.length) return;
+      const e = edgesNow[Math.floor(Math.random() * edgesNow.length)];
+      const speed = (baseSpeed + Math.random() * 0.12) * (prefersReduced ? 0.5 : 1);
+      pulses.push({ A: e.A, B: e.B, t: 0, speed });
+    }
+
+    // gradient for edges/points
+    function makeGradient(w) {
+      const g = ctx.createLinearGradient(0, 0, w, 0);
+      g.addColorStop(0, edgeColorA);
+      g.addColorStop(1, edgeColorB);
+      return g;
+    }
+
+    stopRef.current = false;
+    let last = performance.now();
+    let spawnAcc = 0;
+
+    function loop(now) {
+      if (stopRef.current) return;
+      const dt = Math.min(48, now - last); // clamp delta
+      last = now;
+
+      const r = canvas.getBoundingClientRect();
+      if (canvas.width / dpr !== Math.floor(r.width) || canvas.height / dpr !== Math.floor(r.height)) {
+        fit();
+      }
+
+      // layout each frame (cheap, sizes rarely change; OK for small nets)
+      const { nodes, edges } = layoutNodes(r.width, r.height);
+      const grad = makeGradient(r.width);
+
+      // clear/fade
+      if (backgroundFade >= 1) ctx.clearRect(0, 0, r.width, r.height);
+      else {
+        ctx.fillStyle = `rgba(0,0,0,${backgroundFade})`;
+        ctx.fillRect(0, 0, r.width, r.height);
+      }
+
+      // draw edges (alpha falloff based on proximity to pointer)
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = grad;
+      for (const e of edges) {
+        let alpha = 0.35;
+        if (pointer.current.active) {
+          // distance of pointer to segment AB
+          const { x: x0, y: y0 } = pointer.current;
+          const { x: x1, y: y1 } = e.A, { x: x2, y: y2 } = e.B;
+          const dx = x2 - x1, dy = y2 - y1;
+          const l2 = dx * dx + dy * dy || 1;
+          let t = ((x0 - x1) * dx + (y0 - y1) * dy) / l2;
+          t = Math.max(0, Math.min(1, t));
+          const px = x1 + t * dx, py = y1 + t * dy;
+          const d = Math.hypot(px - x0, py - y0);
+          alpha = Math.max(0.08, Math.min(0.9, (120 - d) / 120 + linkDistanceBoost));
+        }
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.moveTo(e.A.x, e.A.y);
+        ctx.lineTo(e.B.x, e.B.y);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+
+      // spawn pulses
+      if (isVisible && !prefersReduced) {
+        spawnAcc += (dt / 1000) * pulseRate;
+        while (spawnAcc >= 1) {
+          spawnPulse(edges);
+          spawnAcc -= 1;
+        }
+      }
+
+      // draw pulses & advance
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const p = pulses[i];
+        p.t += (dt / 1000) * p.speed; // 0..1
+        if (p.t >= 1) { pulses.splice(i, 1); continue; }
+        const x = p.A.x + (p.B.x - p.A.x) * p.t;
+        const y = p.A.y + (p.B.y - p.A.y) * p.t;
+        ctx.fillStyle = grad;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = edgeColorB;
+        ctx.beginPath();
+        ctx.arc(x, y, nodeRadius * 0.85, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      // draw nodes on top
+      ctx.fillStyle = nodeColor;
+      for (const n of nodes) {
+        let rNode = nodeRadius;
+        if (pointer.current.active) {
+          const d = Math.hypot(n.x - pointer.current.x, n.y - pointer.current.y);
+          if (d < 90) rNode += (90 - d) * 0.02; // subtle grow near pointer
+        }
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, rNode, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+
+    return () => {
+      stopRef.current = true;
+      ro.disconnect();
+      io.disconnect();
+      canvas.removeEventListener("mousemove", onMove);
+      canvas.removeEventListener("mouseleave", onLeave);
+    };
+  }, [layers, nodeRadius, edgeColorA, edgeColorB, nodeColor, backgroundFade, pulseRate, baseSpeed, linkDistanceBoost]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className={`absolute inset-0 w-full h-full ${className}`}
+      aria-hidden
+    />
+  );
+}
+
+
 // Hero
 function Hero() {
   const ref = useRef(null);
@@ -216,16 +695,46 @@ function Hero() {
       <div ref={ref} className="pointer-events-none absolute inset-0">
         <Spotlight />
       </div>
+      <div className="absolute inset-0 z-0 pointer-events-none">
+    {/* show only on left half at md+ to avoid covering video */}
+    <div className="absolute inset-y-0 left-0 w-full md:w-1/2">
+      <ParticleNetwork
+  maxParticlesPerKpx={0.06}  // fewer dots
+  linkDist={130}             // shorter links
+  hoverBoost={70}            // weaker pull to cursor
+  bgFade={0.04}              // slight trails = feels slower
+/><ParticleNetwork
+        // try louder defaults first so you can *see* it
+        maxParticlesPerKpx={0.12}
+        linkDist={160}
+        hoverBoost={160}
+        bgFade={1}          // hard clear each frame (no trails) so visibility is obvious
+      />
+    </div>
+  </div>
+      
       <Container className="grid grid-cols-1 items-center gap-10 py-14 sm:py-20 md:grid-cols-2 md:py-28">
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <p className="text-xs sm:text-sm font-semibold tracking-wider text-rose-400">Portfolio & Blog</p>
-          <h1 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
-            {words.map((w, i) => (
-              <motion.span key={i} className="mr-1 inline-block" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                {w}
-              </motion.span>
-            ))}
-          </h1>
+          <motion.h1
+  className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight"
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.6 }}
+>
+  <Typewriter
+    words={[
+      "Engineering Student • Innovator • Problem Solver",
+      "Electronics • AI • Embedded",
+      "STM32 • IoT • Machine Learning"
+    ]}
+    typeSpeed={70}
+    deleteSpeed={40}
+    pauseAfterType={1200}
+  />
+</motion.h1>
+
+
           <p className="mt-4 sm:mt-5 max-w-xl text-slate-300 text-sm sm:text-base">
             Exploring the intersection of electronics and intelligence — from coding and AI to IoT, microcontrollers, and PCB design. I build solutions, experiment with ideas, and share my projects here.
           </p>
@@ -243,6 +752,7 @@ function Hero() {
     </section>
   );
 }
+
 
 function ParallaxCard() {
   const { scrollYProgress } = useScroll();
@@ -333,7 +843,7 @@ function Projects() {
       <h4 className="text-white font-semibold mt-4">Key Takeaways</h4>
       <ul className="list-disc pl-5 space-y-1">
         <li>Hands-on NLP in Python</li>
-        <li>End-to-end model deployment</li>
+        <li>End-to-end model deployment</li>11
       </ul>
     </div>
   ),
@@ -377,6 +887,7 @@ function Projects() {
 
   return (
     <Section id="projects" className="bg-[#0a0e13]">
+      
       <h2 className="text-center text-2xl sm:text-3xl font-bold tracking-tight text-white">Projects</h2>
 
       {/* Filters */}
