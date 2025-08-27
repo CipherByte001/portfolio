@@ -689,62 +689,71 @@ function Hero() {
     return () => window.removeEventListener("mousemove", set);
   }, []);
 
-  const words = "Engineer • Innovator • Problem Solver".split(" ");
   return (
     <section id="top" className="relative overflow-hidden">
+      {/* 🌈 Mobile fallback: red + blue glow (matches blob) */}
+<div className="absolute inset-0 md:hidden pointer-events-none">
+  <div className="absolute inset-0 bg-gradient-to-b from-rose-500/20 via-purple-500/15 to-sky-500/20 blur-2xl animate-pulse-slow" />
+  <div className="absolute inset-y-0 left-0 w-3/4 bg-gradient-to-r from-black/40 via-black/20 to-transparent" />
+</div>
+
+
+      {/* 🖥️ Desktop background: particle network only on the left column */}
+<div className="absolute inset-0 hidden md:block pointer-events-none">
+  <div className="absolute inset-y-0 left-0 w-1/2">
+    <ParticleNetwork
+      maxParticlesPerKpx={0.04}  // ⬅️ lower = fewer dots (was 0.08)
+      linkDist={120}             // shorter connections
+      hoverBoost={90}            // weaker pull to cursor
+      bgFade={0.08}              // smoother fade (slight trails)
+    />
+  </div>
+</div>
+
+
+      {/* Existing spotlight glow */}
       <div ref={ref} className="pointer-events-none absolute inset-0">
         <Spotlight />
       </div>
-      <div className="absolute inset-0 z-0 pointer-events-none">
-    {/* show only on left half at md+ to avoid covering video */}
-    <div className="absolute inset-y-0 left-0 w-full md:w-1/2">
-      <ParticleNetwork
-  maxParticlesPerKpx={0.06}  // fewer dots
-  linkDist={130}             // shorter links
-  hoverBoost={70}            // weaker pull to cursor
-  bgFade={0.04}              // slight trails = feels slower
-/><ParticleNetwork
-        // try louder defaults first so you can *see* it
-        maxParticlesPerKpx={0.12}
-        linkDist={160}
-        hoverBoost={160}
-        bgFade={1}          // hard clear each frame (no trails) so visibility is obvious
-      />
-    </div>
-  </div>
-      
-      <Container className="grid grid-cols-1 items-center gap-10 py-14 sm:py-20 md:grid-cols-2 md:py-28">
+
+      {/* Foreground content */}
+      <Container className="relative z-10 grid grid-cols-1 items-center gap-10 py-14 sm:py-20 md:grid-cols-2 md:py-28">
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <p className="text-xs sm:text-sm font-semibold tracking-wider text-rose-400">Portfolio & Blog</p>
-          <motion.h1
-  className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight"
-  initial={{ opacity: 0, y: 8 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.6 }}
->
-  <Typewriter
-    words={[
-      "Engineering Student • Innovator • Problem Solver",
-      "Electronics • AI • Embedded",
-      "STM32 • IoT • Machine Learning"
-    ]}
-    typeSpeed={70}
-    deleteSpeed={40}
-    pauseAfterType={1200}
-  />
-</motion.h1>
 
+          <motion.h1
+            className="mt-3 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Typewriter
+              words={[
+                "Engineering Student • Innovator • Problem Solver",
+                "Electronics • AI • Embedded",
+                "STM32 • IoT • Machine Learning"
+              ]}
+              typeSpeed={70}
+              deleteSpeed={40}
+              pauseAfterType={1200}
+            />
+          </motion.h1>
 
           <p className="mt-4 sm:mt-5 max-w-xl text-slate-300 text-sm sm:text-base">
             Exploring the intersection of electronics and intelligence — from coding and AI to IoT, microcontrollers, and PCB design. I build solutions, experiment with ideas, and share my projects here.
           </p>
+
           <div className="mt-6 sm:mt-8 flex flex-wrap items-center gap-3">
             <MagnetButton href="#projects">See Projects</MagnetButton>
-            <a href="#blog" className="rounded-full border border-white/10 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white">
+            <a
+              href="#blog"
+              className="rounded-full border border-white/10 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white"
+            >
               Read the Blog
             </a>
           </div>
         </motion.div>
+
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
           <ParallaxCard />
         </motion.div>
@@ -752,6 +761,7 @@ function Hero() {
     </section>
   );
 }
+
 
 
 function ParallaxCard() {
