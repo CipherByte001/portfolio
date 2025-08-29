@@ -861,24 +861,104 @@ function Projects() {
       components: ["Anaconda", "VS Code"],
       media: { type: "youtube", id: "Le5HsRq_mWM", thumb: `${base}images.jpeg` }
     },
+
     {
-      id: 3,
-      title: "ML Defect Detector",
-      excerpt: "Vision model for surface defects.",
-      desc: "Traditional CV + ML pipeline for surface defect classification. Covers data capture, lighting, feature engineering, and model evaluation.",
-      tags: ["ML", "Vision", "Python"],
-      components: ["OpenCV", "scikit-learn", "LED Ring"],
-      media: { type: "image", src: null, thumb: null }
-    },
+  id: 3,
+  title: "STM32 Blue Pill + HC-05 Bluetooth",
+  excerpt: "Control External LED (PB0) from Phone",
+  desc: (
+    <div className="project-desc">
+      <p>
+        In this project I demonstrate how to use the <strong>STM32F103C8 “Blue Pill”</strong> board
+        together with the <strong>HC-05 Bluetooth module</strong> to control an
+        <strong> external LED connected to PB0</strong> directly from a mobile phone.
+      </p>
+      <p>
+        The firmware was developed using <em>STM32CubeMX</em> and <em>STM32CubeIDE</em>,
+        with <em>STM32CubeProgrammer</em> for flashing. Communication is handled through
+        <strong> USART2 (PA2/PA3)</strong> using interrupt-based UART. The HC-05 receives commands such as:
+      </p>
+      <ul>
+        <li><code>led on</code> → LED turns ON</li>
+        <li><code>led off</code> → LED turns OFF</li>
+        <li><code>who</code> → board info response</li>
+      </ul>
+      <p>
+        This beginner-friendly example is a first step into <strong>Bluetooth control with STM32</strong>.
+        You can easily extend it to multiple LEDs, relays, or even motors to build
+        <strong> IoT and robotics applications</strong>.
+      </p>
+    </div>
+  ),
+  tags: ["STM32", "Embedded", "Bluetooth", "HC-05", "Blue Pill", "IoT", "LED"],
+  components: ["STM32F103C8 (Blue Pill)", "HC-05 Bluetooth Module", "External LED (PB0)"],
+  media: { type: "youtube", id: "pf2VVXozRHk", thumb: `${base}bluetooth.jpg` }
+},
+
     {
-      id: 4,
-      title: "Edge Audio Keyword Spotting",
-      excerpt: "TinyML KWS on microcontrollers.",
-      desc: "Collecting audio, extracting MFCCs, training a tiny CNN, quantization, and deployment to STM32 with CMSIS-NN.",
-      tags: ["ML", "Embedded"],
-      components: ["STM32", "Mic", "CMSIS-NN"],
-      media: { type: "video", src: null, thumb: null }
-    },
+  id: 4,
+  title: "STM32 Blue Pill | LED Blink with Timer (No Delay)",
+  excerpt: "Blink onboard LED (PC13) using a hardware timer interrupt—no HAL_Delay.",
+  desc: (
+<div class="project-desc">
+  <p>
+    This project blinks the <strong>onboard LED (PC13)</strong> on the STM32F103C8 “Blue Pill”
+    using a <strong>hardware timer interrupt</strong> instead of blocking delays.
+    The CPU stays free for other tasks while the timer toggles the LED at a fixed rate.
+  </p>
+  <p>
+    Configured in <em>STM32CubeMX</em>: enable <strong>TIMx</strong> (e.g., TIM2) in
+    <em>Output Compare</em> or <em>Update interrupt</em> mode, set the prescaler/period for your blink rate,
+    and enable the timer IRQ in NVIC. In the ISR, call <code>HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13)</code>.
+  </p>
+  <ul>
+    <li>Board: STM32F103C8 (Blue Pill)</li>
+    <li>LED: Onboard PC13 (active-low)</li>
+    <li>Timer: TIM2 @ 1 Hz blink (example)</li>
+  </ul>
+  <p>
+    Result: smooth, non-blocking LED blink you can extend for multitasking,
+    PWM, or scheduled tasks without using <code>HAL_Delay</code>.
+  </p>
+</div>
+  ),
+  tags: ["STM32", "Timers", "Blue Pill", "Interrupts", "Bare-metal", "Embedded"],
+  components: ["STM32F103C8 (Blue Pill)"],
+  media: { type: "youtube", id: "3Kux8YE9Rj8", thumb: `${base}pwm-output-mode.jpg` }
+},
+{
+  id: 5,
+  title: "STM32 Blue Pill | Push Button LED Control",
+  excerpt: "Toggle onboard LED (PC13) using a push button on PB1.",
+  desc: (
+    <div className="project-desc">
+      <p>
+        In this project I show how to use a <strong>push button</strong> input on the
+        <strong> STM32F103C8 Blue Pill</strong> to control the <strong>onboard LED (PC13)</strong>.
+        When the button is pressed, the LED toggles ON or OFF.
+      </p>
+      <p>Configured in <em>STM32CubeMX</em>:</p>
+      <ul>
+        <li>PB1 as <strong>GPIO_Input</strong> (with Pull-up enabled)</li>
+        <li>PC13 as <strong>GPIO_Output</strong> (onboard LED, active-low)</li>
+      </ul>
+      <p>
+        The firmware continuously polls the button state in the <code>while(1)</code> loop
+        and toggles the LED accordingly. You can extend this by using interrupts
+        to detect button presses for more efficient designs.
+      </p>
+      <p>
+        This is one of the simplest STM32 projects to get started with
+        <strong> digital input/output</strong>.
+      </p>
+    </div>
+  ),
+  tags: ["STM32", "Blue Pill", "GPIO", "Push Button", "LED", "Embedded"],
+  components: ["STM32F103C8 (Blue Pill)", "Push Button", "LED (PC13)"],
+  media: { type: "youtube", id: "JpXk9mgQoKU", thumb: `${base}button.jpg` }
+}
+
+
   ]), [base]);
 
   const allTags = useMemo(() => Array.from(new Set(allProjects.flatMap(p => p.tags))).sort(), [allProjects]);
