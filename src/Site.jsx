@@ -808,8 +808,46 @@ function Projects() {
   const base = getBaseUrl();
 
   const allProjects = useMemo(() => ([
+
     {
-      id: 1,
+  id: 1,
+  title: "STM32 Digital Signal Processing | Noise vs Smoothed Temperature (With/Without DSP)q",
+  excerpt: "Measure temperature with a 10k NTC and see the difference between raw ADC values and DSP-smoothed data on an OLED graph.",
+  desc: (
+    <div className="project-desc">
+      <p>
+        This project uses the <strong>STM32F103C8 Blue Pill</strong>, a
+        <strong> 10k NTC thermistor</strong>, and a <strong>SSD1306 OLED</strong>
+        to build a live temperature monitor. The display shows the current
+        temperature, a scrolling graph of recent history, min/max values, and
+        the raw ADC reading.
+      </p>
+      <p>
+        A key feature is comparing readings <em>with and without Digital Signal Processing (DSP)</em>.
+        Without DSP, the graph and temperature values jitter due to ADC noise.
+        With DSP enabled (a <strong>Simple Moving Average filter</strong>),
+        readings become smooth and stable, with only a small delay in response.
+      </p>
+      <ul>
+        <li>Board: STM32F103C8 (Blue Pill)</li>
+        <li>Display: 0.96" OLED SSD1306 (I²C)</li>
+        <li>Sensor: 10k NTC thermistor + 10k resistor divider</li>
+        <li>ADC: PA1 (ADC1_IN1)</li>
+        <li>DSP: Simple Moving Average filter (toggle on/off)</li>
+      </ul>
+      <p>
+        This is a great introduction to <strong>ADC</strong> on STM32 and to
+        <strong> digital signal processing</strong> techniques for sensor data.
+        You’ll clearly see how DSP improves stability of embedded measurements.
+      </p>
+    </div>
+  ),
+  tags: ["STM32", "Digital Signal Processing", "ADC", "Thermistor", "OLED", "DSP", "Moving Average", "Embedded"],
+  components: ["STM32F103C8 (Blue Pill)", "SSD1306 OLED", "NTC 10k Thermistor", "Resistor 10k"],
+  media: { type: "youtube", id: "8zwHq98azvQ", thumb: `${base}STM32f103.jpeg` }
+},
+    {
+      id: 2,
       title: "Digital Counter on OLED Display using STM32",
       excerpt: "Counts 1–10,000 on 0.96\" OLED (STM32F103C8).",
       desc: "This project demonstrates a simple yet effective digital counter system using the STM32F103C8 Blue Pill microcontroller and a 0.96-inch OLED display. The system continuously counts from 1 to 10,000, displaying each number on the OLED screen with proper alignment for 1, 2, 3, and 4-digit values. The project features dynamic screen updates and smooth transitions, with a delay between number updates to make the display easily readable. The main goal of this project is to showcase the ability of STM32 microcontrollers to interface with an OLED display and handle basic operations such as converting integers to strings and updating the display at regular intervals. This project can be expanded further by adding functionalities like button-based pause/resume, speed control, or even a countdown mode.",
@@ -819,7 +857,7 @@ function Projects() {
       media: { type: "youtube", id: "0hqF-edwhlI", thumb: `${base}hq720.jpg` }
     },
     {
-      id: 2,
+      id: 3,
       title: "Email Spam Classification Using Machine Learning",
       excerpt:"Built an ML-based email spam filter using Logistic Regression and NLP (TF-IDF). Achieved strong accuracy and deployed a real-time web demo.",
       desc: (
@@ -863,7 +901,7 @@ function Projects() {
     },
 
     {
-  id: 3,
+  id: 4,
   title: "STM32 Blue Pill + HC-05 Bluetooth",
   excerpt: "Control External LED (PB0) from Phone",
   desc: (
@@ -896,7 +934,7 @@ function Projects() {
 },
 
     {
-  id: 4,
+  id: 5,
   title: "STM32 Blue Pill | LED Blink with Timer (No Delay)",
   excerpt: "Blink onboard LED (PC13) using a hardware timer interrupt—no HAL_Delay.",
   desc: (
@@ -927,7 +965,7 @@ function Projects() {
   media: { type: "youtube", id: "3Kux8YE9Rj8", thumb: `${base}pwm-output-mode.jpg` }
 },
 {
-  id: 5,
+  id: 6,
   title: "STM32 Blue Pill | Push Button LED Control",
   excerpt: "Toggle onboard LED (PC13) using a push button on PB1.",
   desc: (
@@ -957,6 +995,9 @@ function Projects() {
   components: ["STM32F103C8 (Blue Pill)", "Push Button", "LED (PC13)"],
   media: { type: "youtube", id: "JpXk9mgQoKU", thumb: `${base}button.jpg` }
 }
+
+
+
 
 
   ]), [base]);
