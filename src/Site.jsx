@@ -808,9 +808,38 @@ function Projects() {
   const base = getBaseUrl();
 
   const allProjects = useMemo(() => ([
-
     {
   id: 1,
+  title: "MNIST Digit Classification with Neural Network | Machine Learning Project",
+  excerpt: "Classify handwritten digits from the MNIST dataset using a neural network built with TensorFlow/Keras.",
+  desc: (
+    <div className="project-desc">
+      <p>
+        In this project, we use a <strong>neural network</strong> to classify handwritten digits from the <strong>MNIST dataset</strong> with Python and TensorFlow/Keras. The model architecture involves a fully connected neural network that is trained to recognize digits from 0 to 9.
+      </p>
+      <p>
+        The tutorial covers data preprocessing, model creation, training, and evaluation. We also discuss techniques to improve model performance and the importance of validation accuracy during training.
+      </p>
+      <ul>
+        <li>Framework: TensorFlow/Keras</li>
+        <li>Dataset: MNIST</li>
+        <li>Model: Fully connected neural network</li>
+        <li>Activation Function: ReLU</li>
+        <li>Optimizer: Adam</li>
+      </ul>
+      <p>
+        This project is a great starting point for those interested in learning how to implement <strong>deep learning</strong> models and understand the basics of <strong>neural networks</strong> and <strong>image classification</strong>.
+      </p>
+    </div>
+  ),
+  tags: ["Machine Learning", "Neural Networks", "MNIST", "TensorFlow", "Keras", "Image Classification", "Deep Learning"],
+  components: ["Python", "TensorFlow", "Keras", "MNIST Dataset"],
+  media: { type: "youtube", id: "DVQL8maZAx4", thumb: `${base}MNIST.png` }
+}
+,
+
+    {
+  id: 2,
   title: "STM32 Digital Signal Processing | Noise vs Smoothed Temperature (With/Without DSP)q",
   excerpt: "Measure temperature with a 10k NTC and see the difference between raw ADC values and DSP-smoothed data on an OLED graph.",
   desc: (
@@ -847,7 +876,7 @@ function Projects() {
   media: { type: "youtube", id: "8zwHq98azvQ", thumb: `${base}STM32f103.jpeg` }
 },
     {
-      id: 2,
+      id: 3,
       title: "Digital Counter on OLED Display using STM32",
       excerpt: "Counts 1–10,000 on 0.96\" OLED (STM32F103C8).",
       desc: "This project demonstrates a simple yet effective digital counter system using the STM32F103C8 Blue Pill microcontroller and a 0.96-inch OLED display. The system continuously counts from 1 to 10,000, displaying each number on the OLED screen with proper alignment for 1, 2, 3, and 4-digit values. The project features dynamic screen updates and smooth transitions, with a delay between number updates to make the display easily readable. The main goal of this project is to showcase the ability of STM32 microcontrollers to interface with an OLED display and handle basic operations such as converting integers to strings and updating the display at regular intervals. This project can be expanded further by adding functionalities like button-based pause/resume, speed control, or even a countdown mode.",
@@ -857,7 +886,7 @@ function Projects() {
       media: { type: "youtube", id: "0hqF-edwhlI", thumb: `${base}hq720.jpg` }
     },
     {
-      id: 3,
+      id: 4,
       title: "Email Spam Classification Using Machine Learning",
       excerpt:"Built an ML-based email spam filter using Logistic Regression and NLP (TF-IDF). Achieved strong accuracy and deployed a real-time web demo.",
       desc: (
@@ -901,7 +930,7 @@ function Projects() {
     },
 
     {
-  id: 4,
+  id: 5,
   title: "STM32 Blue Pill + HC-05 Bluetooth",
   excerpt: "Control External LED (PB0) from Phone",
   desc: (
@@ -934,7 +963,7 @@ function Projects() {
 },
 
     {
-  id: 5,
+  id: 6,
   title: "STM32 Blue Pill | LED Blink with Timer (No Delay)",
   excerpt: "Blink onboard LED (PC13) using a hardware timer interrupt—no HAL_Delay.",
   desc: (
@@ -965,7 +994,7 @@ function Projects() {
   media: { type: "youtube", id: "3Kux8YE9Rj8", thumb: `${base}pwm-output-mode.jpg` }
 },
 {
-  id: 6,
+  id: 7,
   title: "STM32 Blue Pill | Push Button LED Control",
   excerpt: "Toggle onboard LED (PC13) using a push button on PB1.",
   desc: (
