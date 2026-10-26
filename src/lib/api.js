@@ -13,7 +13,7 @@ import { projects as STATIC_PROJECTS } from '../data/projects.js';
 import { research as STATIC_RESEARCH } from '../data/research.js';
 import { achievements as STATIC_ACHIEVEMENTS } from '../data/achievements.js';
 
-const CMS_URL = import.meta.env.VITE_CMS_URL || '';
+const CMS_URL = import.meta.env.VITE_CMS_URL || 'https://portfolio-cms-rpmi.onrender.com';
 
 // ─── Generic fetch helper ─────────────────────────────────────────────────────
 async function cmsGet(path) {
