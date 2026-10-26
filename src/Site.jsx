@@ -25,7 +25,6 @@ function useCMS(fetcher, staticFallback) {
   const [data, setData] = useState(staticFallback);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
-    if (!import.meta.env.VITE_CMS_URL) return;
     setLoading(true);
     fetcher()
       .then((d) => { if (d !== null && d !== undefined) setData(d); })
