@@ -1329,7 +1329,7 @@ function DetailPage({ collectionName, backLabel, backHref }) {
       if (sample && sample.id === id) return sample;
     }
     return null;
-  }, [collectionName, id]);
+  }, [collectionName, id, allProjects, allResearch]);
 
   const videoRef = useRef(null);
 

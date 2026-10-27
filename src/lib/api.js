@@ -16,16 +16,33 @@ import { achievements as STATIC_ACHIEVEMENTS } from '../data/achievements.js';
 const CMS_URL = import.meta.env.VITE_CMS_URL || 'https://portfolio-cms-rpmi.onrender.com';
 
 // ─── Generic fetch helper ─────────────────────────────────────────────────────
-async function cmsGet(path) {
+async function cmsGet(path, attempt = 1) {
   if (!CMS_URL) return null; // No CMS configured → use static fallback
   try {
     const res = await fetch(`${CMS_URL}/api${path}`, {
+      cache: 'no-store',
       headers: { 'Content-Type': 'application/json' },
     });
     if (!res.ok) throw new Error(`CMS ${path} → ${res.status}`);
-    return await res.json();
+    const data = await res.json();
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem('cms_cache_' + path, JSON.stringify(data));
+      }
+    } catch {}
+    return data;
   } catch (err) {
-    console.warn('[CMS] Fetch failed, using static fallback:', err.message);
+    if (attempt < 2) {
+      await new Promise((r) => setTimeout(r, 1200));
+      return cmsGet(path, attempt + 1);
+    }
+    console.warn('[CMS] Fetch failed, using cached/static fallback:', err.message);
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const cached = localStorage.getItem('cms_cache_' + path);
+        if (cached) return JSON.parse(cached);
+      }
+    } catch {}
     return null;
   }
 }
