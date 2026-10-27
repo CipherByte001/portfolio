@@ -1135,16 +1135,7 @@ function Projects() {
       </div>
 
       {/* Grid (Optimized Staggered Cascade) */}
-      <motion.div 
-        className="mt-8 sm:mt-10 grid grid-cols-1 gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3" 
-        initial="hidden" 
-        whileInView="show" 
-        viewport={{ once: true, margin: "-50px" }}
-        variants={{
-          hidden: { opacity: 0 },
-          show: { opacity: 1, transition: { staggerChildren: 0.1 } } // Cards load 0.1s apart
-        }}
-      >
+      <div className="mt-8 sm:mt-10 grid grid-cols-1 gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((p) => {
           const rawCover = p.media?.type === "image" ? p.media?.src : p.media?.thumb;
           const coverImage = rawCover ? (rawCover.startsWith("http") || rawCover.startsWith("/") ? rawCover : `${base}${rawCover}`) : null;
@@ -1153,10 +1144,9 @@ function Projects() {
           return (
             <motion.div
               key={p.id}
-              variants={{
-                hidden: { opacity: 0, y: 30 },
-                show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
-              }}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ y: -8 }}
               className="group relative cursor-pointer pt-6 select-none will-change-transform"
             >
@@ -1217,7 +1207,7 @@ function Projects() {
             </motion.div>
           );
         })}
-      </motion.div>
+      </div>
     </Section>
   );
 }
@@ -1237,25 +1227,15 @@ function Research() {
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Research & Publications</h2>
       </div>
 
-      <motion.div
-        className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-auto max-w-6xl"
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: "-50px" }}
-        variants={{
-          hidden: { opacity: 0 },
-          show: { opacity: 1, transition: { staggerChildren: 0.15 } }
-        }}
-      >
+      <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-auto max-w-6xl">
         {displayItems.map((paper) => {
           const coverImage = paper.thumbnail || (paper.images && paper.images[0]);
           return (
             <motion.div
               key={paper.id}
-              variants={{
-                hidden: { opacity: 0, y: 40 },
-                show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
-              }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ y: -8 }}
               className="group relative cursor-pointer pt-6 select-none will-change-transform"
             >
@@ -1304,7 +1284,7 @@ function Research() {
             {`[research_records: none_published_yet_]`}
           </div>
         )}
-      </motion.div>
+      </div>
     </Section>
   );
 }
