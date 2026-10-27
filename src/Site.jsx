@@ -21,16 +21,41 @@ import {
 // -- useCMS hook ---------------------------------------------------------------
 // Fetches a resource from the CMS and falls back to the static default
 // if the CMS isn't configured or isn't reachable yet.
-function useCMS(fetcher, staticFallback) {
-  const [data, setData] = useState(staticFallback);
+// -- useCMS hook (Lightspeed SWR Cache) ----------------------------------------
+// Instant 0ms load from localStorage cache + background silent revalidation with CMS.
+function useCMS(fetcher, staticFallback, cacheKey) {
+  const key = cacheKey || fetcher?.name || 'default';
+  const [data, setData] = useState(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const cached = localStorage.getItem('s_cms_' + key);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed !== null && parsed !== undefined) return parsed;
+        }
+      } catch {}
+    }
+    return staticFallback;
+  });
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     setLoading(true);
     fetcher()
-      .then((d) => { if (d !== null && d !== undefined) setData(d); })
+      .then((d) => {
+        if (d !== null && d !== undefined) {
+          setData(d);
+          if (typeof window !== 'undefined' && window.localStorage) {
+            try {
+              localStorage.setItem('s_cms_' + key, JSON.stringify(d));
+            } catch {}
+          }
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [key]);
+
   return { data, loading };
 }
 
@@ -214,7 +239,7 @@ function HomePage() {
 // and swap the placeholder block below for an <iframe> or a direct download link.
 function CVPage() {
   const base = getBaseUrl();
-  const { data: resume } = useCMS(fetchResume, null);
+  const { data: resume } = useCMS(fetchResume, null, 'resume');
   const pdfUrl = resume?.url || `${base}cv.pdf`;
   return (
     <Section id="cv-page" animation="none">
@@ -1104,7 +1129,7 @@ function Projects() {
   const [activeTags, setActiveTags] = useState([]);
 
   // Fetch from CMS; falls back to static data when CMS is not configured.
-  const { data: cmsProjects } = useCMS(fetchProjects, PROJECTS_DATA);
+  const { data: cmsProjects } = useCMS(fetchProjects, PROJECTS_DATA, 'projects');
   const displayProjects = useMemo(
     () => (import.meta.env.DEV ? [...cmsProjects, SAMPLE_PROJECT] : cmsProjects),
     [cmsProjects]
@@ -1218,7 +1243,7 @@ function Projects() {
 // but each card opens its own full page instead of a modal.
 function Research() {
   // Fetch from CMS; falls back to static data when CMS is not configured.
-  const { data: cmsResearch } = useCMS(fetchResearch, RESEARCH_DATA);
+  const { data: cmsResearch } = useCMS(fetchResearch, RESEARCH_DATA, 'research');
   const displayItems = import.meta.env.DEV ? [...cmsResearch, SAMPLE_RESEARCH] : cmsResearch;
 
   return (
@@ -1296,8 +1321,8 @@ function DetailPage({ collectionName, backLabel, backHref }) {
   const { id } = useParams();
   const base = getBaseUrl();
 
-  const { data: allProjects } = useCMS(fetchProjects, PROJECTS_DATA);
-  const { data: allResearch } = useCMS(fetchResearch, RESEARCH_DATA);
+  const { data: allProjects } = useCMS(fetchProjects, PROJECTS_DATA, 'projects');
+  const { data: allResearch } = useCMS(fetchResearch, RESEARCH_DATA, 'research');
   const item = useMemo(() => {
     const realData = collectionName === "projects" ? allProjects : collectionName === "research" ? allResearch : [];
     const found = realData.find((r) => r.id === id);
@@ -1428,7 +1453,7 @@ function VideoPlaceholder() {
 // About (after Projects)
 function About() {
   const base = getBaseUrl();
-  const { data: cmsAbout } = useCMS(fetchAbout, null);
+  const { data: cmsAbout } = useCMS(fetchAbout, null, 'about');
 
   // Merge CMS data over the hardcoded defaults (CMS wins when set)
   const photoSrc = cmsAbout?.photo || `${base}sanam.jpg`;
@@ -1512,7 +1537,7 @@ function About() {
 // =====================
 // Icon-Based Skills Grid (Full-Color Brand Icons)
 function Skills() {
-  const { data: dynamicSkills } = useCMS(fetchSkills, null);
+  const { data: dynamicSkills } = useCMS(fetchSkills, null, 'skills');
   // Static fallback categories
   const defaultCategories = [
     {
@@ -1704,7 +1729,7 @@ function Achievements() {
   const [activeFolder, setActiveFolder] = useState(null);
 
   // Fetch from CMS; falls back to static data when CMS is not configured.
-  const { data: cmsAchievements } = useCMS(fetchAchievements, ACHIEVEMENTS_DATA);
+  const { data: cmsAchievements } = useCMS(fetchAchievements, ACHIEVEMENTS_DATA, 'achievements');
   const displayAttachments = import.meta.env.DEV ? [...cmsAchievements, SAMPLE_ACHIEVEMENT] : cmsAchievements;
 
   return (
@@ -1796,7 +1821,7 @@ const SAMPLE_RECOMMENDATION = {
 };
 
 function Recommendations() {
-  const { data: cmsRecos } = useCMS(fetchRecommendations, RECOMMENDATIONS);
+  const { data: cmsRecos } = useCMS(fetchRecommendations, RECOMMENDATIONS, 'recommendations');
   const displayQuotes = import.meta.env.DEV ? [...cmsRecos, SAMPLE_RECOMMENDATION] : cmsRecos;
 
   if (displayQuotes.length === 0) return null;
