@@ -256,6 +256,28 @@ function CVPage() {
   const base = getBaseUrl();
   const { data: resume } = useCMS(fetchResume, null, 'resume');
   const pdfUrl = resume?.url || `${base}cv.pdf`;
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+      const isMobileDevice = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ua) || (typeof window !== 'undefined' && window.innerWidth < 768);
+      setIsMobile(Boolean(isMobileDevice));
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Mobile browsers (Android Chrome, iOS Safari) do not render PDFs inside iframes natively
+  // and instead hijack the browser tab to redirect to an external fullscreen URL.
+  // Google Docs Viewer renders the PDF into mobile-friendly HTML5 canvas inside the frame,
+  // keeping the visitor on your website with smooth touch-scrolling.
+  const viewerSrc = isMobile && pdfUrl.startsWith('http')
+    ? `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`
+    : `${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`;
+
   return (
     <Section id="cv-page" animation="none" className="!py-4 sm:!py-6">
       <div className="mx-auto w-full max-w-5xl lg:max-w-6xl pt-2 sm:pt-4">
@@ -300,8 +322,9 @@ function CVPage() {
         {/* Wide Full-Scale Embedded PDF Viewer */}
         <div className="mt-5 w-full rounded-2xl border border-white/10 bg-[#0f141d] overflow-hidden shadow-2xl ring-1 ring-white/5">
           <iframe
-            src={`${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`}
-            className="w-full h-[85vh] sm:h-[88vh] rounded-2xl border-0"
+            key={isMobile ? "mobile-viewer" : "desktop-viewer"}
+            src={viewerSrc}
+            className="w-full h-[80vh] sm:h-[88vh] rounded-2xl border-0"
             title="Eitmam Omar Sanam CV"
           />
         </div>
