@@ -176,6 +176,9 @@ function AmbientBackground() {
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
   return null;
@@ -210,7 +213,19 @@ export default function Site() {
 // (needed because SPA navigation doesn't trigger the browser's native anchor scroll).
 function HomePage() {
   const location = useLocation();
+  const isInitialMount = useRef(true);
+
   useEffect(() => {
+    // If this is the initial load or a browser reload, guarantee we land at the hero top
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      if (window.location.hash) {
+        window.history.replaceState(null, "", window.location.pathname);
+      }
+      return;
+    }
+
     if (!location.hash) return;
     const el = document.querySelector(location.hash);
     if (el) {
@@ -443,6 +458,7 @@ function InView({ children }) {
 function Nav() {
   const [open, setOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
+  const navigate = useNavigate();
 
   const items = [
     { href: "#research", label: "Research" },
@@ -451,6 +467,18 @@ function Nav() {
     { href: "#academics", label: "Academics" },
     { href: "#achievements", label: "Achievements" },
   ];
+
+  const scrollTo = (href) => {
+    if (window.location.pathname === "/" || window.location.pathname === "") {
+      const el = document.querySelector(href);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.history.replaceState(null, "", window.location.pathname);
+      }
+    } else {
+      navigate(`/${href}`);
+    }
+  };
 
   // Scroll Spy Logic
   useEffect(() => {
@@ -476,7 +504,19 @@ function Nav() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/60 backdrop-blur-md">
       <Container className="flex h-16 items-center justify-between">
-        <a href="#top" className="flex items-center gap-2 font-semibold">
+        <a
+          href="#top"
+          onClick={(e) => {
+            e.preventDefault();
+            if (window.location.pathname === "/" || window.location.pathname === "") {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              window.history.replaceState(null, "", window.location.pathname);
+            } else {
+              navigate("/");
+            }
+          }}
+          className="flex items-center gap-2 font-semibold"
+        >
           <Logo className="h-6 w-6 text-white" />
           <span className="tracking-tight">Eitmam Omar Sanam</span>
         </a>
@@ -486,25 +526,43 @@ function Nav() {
           {items.map((it) => {
             const isActive = activeSection === it.href;
             return (
-              <Link
+              <a
                 key={it.label}
-                to={`/${it.href}`}
-                className={`text-sm transition-all duration-300 relative ${isActive ? "text-white font-medium" : "text-slate-400 hover:text-white"}`}
+                href={it.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  scrollTo(it.href);
+                }}
+                className={`text-sm transition-all duration-300 relative cursor-pointer ${isActive ? "text-white font-medium" : "text-slate-400 hover:text-white"}`}
               >
                 {it.label}
-              </Link>
+              </a>
             );
           })}
         </nav>
 
         {/* Actions (desktop) */}
-
         <div className="hidden items-center gap-3 md:flex">
-          <Link to="/#contact" className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white">
+          <a
+            href="#contact"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollTo("#contact");
+            }}
+            className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white cursor-pointer"
+          >
             Contact
-          </Link>
+          </a>
           {/* The Glowing About Me Button is back! */}
-          <MagnetButton href="/#about">About Me</MagnetButton>
+          <MagnetButton
+            href="#about"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollTo("#about");
+            }}
+          >
+            About Me
+          </MagnetButton>
         </div>
 
         {/* Mobile hamburger */}
