@@ -213,26 +213,23 @@ export default function Site() {
 // (needed because SPA navigation doesn't trigger the browser's native anchor scroll).
 function HomePage() {
   const location = useLocation();
-  const isInitialMount = useRef(true);
 
   useEffect(() => {
-    // If this is the initial load or a browser reload, guarantee we land at the hero top
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-      if (window.location.hash) {
-        window.history.replaceState(null, "", window.location.pathname);
-      }
-      return;
+    // Guarantee reloads and initial mounts always start at the hero top (0, 0)
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    if (window.location.hash) {
+      window.history.replaceState(null, "", window.location.pathname);
     }
+  }, []);
 
+  useEffect(() => {
     if (!location.hash) return;
     const el = document.querySelector(location.hash);
     if (el) {
       const t = setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
       return () => clearTimeout(t);
     }
-  }, [location]);
+  }, [location.hash]);
 
   return (
     <>
@@ -250,12 +247,17 @@ function HomePage() {
   );
 }
 
-// Placeholder page for the downloadable/embeddable CV — drop cv.pdf into /public
-// and swap the placeholder block below for an <iframe> or a direct download link.
+// Dedicated Online CV reader page: serves from Vercel Edge for instant 0ms load
+// and renders cleanly inside an embedded frame on both mobile & desktop.
 function CVPage() {
   const base = getBaseUrl();
   const { data: resume } = useCMS(fetchResume, null, 'resume');
-  const pdfUrl = resume?.url || `${base}cv.pdf`;
+
+  // Render's free-tier spins down and uses an ephemeral disk (files in /media/ are wiped on sleep).
+  // We prioritize the permanent, lightning-fast static edge copy (/cv.pdf) on Vercel Edge.
+  // If the user specifies an external permanent cloud URL (e.g. Supabase, S3, Cloudinary), use that.
+  const isRenderEphemeral = resume?.url?.includes('onrender.com/media');
+  const pdfUrl = (resume?.url && !isRenderEphemeral) ? resume.url : `${base}cv.pdf`;
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -270,12 +272,13 @@ function CVPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Mobile browsers (Android Chrome, iOS Safari) do not render PDFs inside iframes natively
-  // and instead hijack the browser tab to redirect to an external fullscreen URL.
-  // Google Docs Viewer renders the PDF into mobile-friendly HTML5 canvas inside the frame,
-  // keeping the visitor on your website with smooth touch-scrolling.
-  const viewerSrc = isMobile && pdfUrl.startsWith('http')
-    ? `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`
+  // For mobile devices, build a full absolute URL for Google Docs Viewer
+  const absolutePdfUrl = pdfUrl.startsWith('http')
+    ? pdfUrl
+    : (typeof window !== 'undefined' ? `${window.location.origin}${pdfUrl.startsWith('/') ? '' : '/'}${pdfUrl}` : pdfUrl);
+
+  const viewerSrc = isMobile
+    ? `https://docs.google.com/viewer?url=${encodeURIComponent(absolutePdfUrl)}&embedded=true`
     : `${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`;
 
   return (
@@ -589,12 +592,60 @@ function Nav() {
         </div>
 
         {/* Mobile hamburger */}
-        <button onClick={() => setOpen((v) => !v)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-slate-200 md:hidden">
-          <span className="text-xl leading-none">≡</span>
+        <button onClick={() => setOpen((v) => !v)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-slate-200 md:hidden" aria-label="Toggle navigation menu">
+          <span className="text-xl leading-none">{open ? "✕" : "≡"}</span>
         </button>
       </Container>
       
-      {/* Mobile menu panel remains the same... */}
+      {/* Mobile menu dropdown */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="border-b border-white/10 bg-black/95 backdrop-blur-xl md:hidden overflow-hidden"
+          >
+            <Container className="py-4 space-y-3">
+              {items.map((it) => (
+                <a
+                  key={it.label}
+                  href={it.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpen(false);
+                    scrollTo(it.href);
+                  }}
+                  className="block py-1.5 text-sm font-medium text-slate-300 transition hover:text-white"
+                >
+                  {it.label}
+                </a>
+              ))}
+              <div className="pt-3 flex flex-col gap-2.5 border-t border-white/10">
+                <Link
+                  to="/cv"
+                  onClick={() => setOpen(false)}
+                  className="block py-1.5 text-sm font-semibold text-indigo-400 hover:text-indigo-300"
+                >
+                  Online CV →
+                </Link>
+                <a
+                  href="#contact"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpen(false);
+                    scrollTo("#contact");
+                  }}
+                  className="block py-1.5 text-sm text-slate-300 hover:text-white"
+                >
+                  Contact
+                </a>
+              </div>
+            </Container>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
@@ -1157,13 +1208,21 @@ function Hero() {
             <MagnetButton to="/cv">Online CV</MagnetButton>
             <a
               href="#research"
-              className="rounded-full border border-white/10 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white"
+              onClick={(e) => {
+                e.preventDefault();
+                document.querySelector('#research')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="rounded-full border border-white/10 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white cursor-pointer"
             >
               Research & Publications
             </a>
             <a
               href="#projects"
-              className="rounded-full border border-white/10 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white"
+              onClick={(e) => {
+                e.preventDefault();
+                document.querySelector('#projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="rounded-full border border-white/10 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white cursor-pointer"
             >
               See Projects
             </a>
