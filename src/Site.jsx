@@ -379,12 +379,20 @@ function ScrollProgressBar() {
   );
 }
 
-function MagnetButton({ children, className = "", href = "#", onClick }) {
+function MagnetButton({ children, className = "", href = "#", to, onClick }) {
+  const commonClasses = `inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 sm:px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:bg-indigo-500 hover:shadow-indigo-600/50 ${className}`;
+  if (to) {
+    return (
+      <Link to={to} onClick={onClick} className={commonClasses}>
+        {children}
+      </Link>
+    );
+  }
   return (
     <a
       href={href || undefined}
       onClick={onClick}
-      className={`inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 sm:px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-500 ${className}`}
+      className={commonClasses}
     >
       {children}
     </a>
@@ -1065,19 +1073,19 @@ function Hero() {
           </div>
 
           <div className="mt-6 sm:mt-8 flex flex-wrap items-center gap-3">
-            <MagnetButton href="#projects">See Projects</MagnetButton>
+            <MagnetButton to="/cv">Online CV</MagnetButton>
             <a
               href="#research"
               className="rounded-full border border-white/10 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white"
             >
               Research & Publications
             </a>
-            <Link
-              to="/cv"
+            <a
+              href="#projects"
               className="rounded-full border border-white/10 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/5 hover:text-white"
             >
-              Online CV
-            </Link>
+              See Projects
+            </a>
           </div>
         </motion.div>
 
