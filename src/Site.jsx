@@ -242,33 +242,54 @@ function CVPage() {
   const { data: resume } = useCMS(fetchResume, null, 'resume');
   const pdfUrl = resume?.url || `${base}cv.pdf`;
   return (
-    <Section id="cv-page" animation="none">
-      <div className="mx-auto max-w-3xl pt-16 sm:pt-20">
-        <Link to="/#top" className="text-sm text-slate-400 transition hover:text-white">&larr; Back to home</Link>
-        <h1 className="mt-4 text-2xl sm:text-3xl font-bold tracking-tight text-white">Online CV</h1>
-        {resume?.note && (
-          <p className="mt-2 text-xs font-mono text-indigo-400">{resume.note}</p>
-        )}
-        <p className="mt-3 text-sm sm:text-base text-slate-400">
-          My full curriculum vitae is available below. You can view it inline or download a PDF copy directly.
-        </p>
-        {/* Embedded Fullscreen PDF Viewer */}
-        <div className="mt-8 w-full rounded-2xl border border-white/10 bg-[#0f141d] overflow-hidden shadow-2xl">
+    <Section id="cv-page" animation="none" className="!py-4 sm:!py-6">
+      <div className="mx-auto w-full max-w-5xl lg:max-w-6xl pt-2 sm:pt-4">
+        {/* Header Action Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-white/10">
+          <div>
+            <Link to="/#top" className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-400 transition hover:text-white mb-2">
+              <span>&larr;</span> Back to home
+            </Link>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+              Curriculum Vitae
+              <span className="hidden sm:inline-block rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-0.5 text-[11px] font-mono text-indigo-300">
+                PDF
+              </span>
+            </h1>
+            {resume?.note ? (
+              <p className="mt-1 text-xs font-mono text-indigo-400">{resume.note}</p>
+            ) : (
+              <p className="mt-1 text-xs sm:text-sm text-slate-400">
+                Full curriculum vitae with research publications, project experience, and credentials.
+              </p>
+            )}
+          </div>
+
+          {/* Quick Action Button */}
+          <div className="flex items-center gap-3 shrink-0">
+            <a
+              href={pdfUrl}
+              target="_blank"
+              rel="noreferrer"
+              download="Eitmam_Omar_Sanam_CV.pdf"
+              className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition hover:bg-indigo-500 hover:shadow-indigo-600/50"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Download PDF
+            </a>
+          </div>
+        </div>
+
+        {/* Wide Full-Scale Embedded PDF Viewer */}
+        <div className="mt-5 w-full rounded-2xl border border-white/10 bg-[#0f141d] overflow-hidden shadow-2xl ring-1 ring-white/5">
           <iframe
             src={`${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`}
-            className="w-full h-[85vh] rounded-2xl border-0"
+            className="w-full h-[85vh] sm:h-[88vh] rounded-2xl border-0"
             title="Eitmam Omar Sanam CV"
           />
         </div>
-        <a
-          href={pdfUrl}
-          target="_blank"
-          rel="noreferrer"
-          download="Eitmam_Omar_Sanam_CV.pdf"
-          className="mt-6 inline-flex items-center justify-center rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-500"
-        >
-          Download CV (PDF)
-        </a>
       </div>
     </Section>
   );
