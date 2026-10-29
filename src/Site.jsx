@@ -1030,7 +1030,7 @@ function Hero() {
           <p className="text-xs sm:text-sm font-semibold tracking-wider text-slate-400">Electrical & Electronic Engineering Student</p>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            {["RUET", "Embedded ML", "Biomedical Signal Processing"].map((tag) => (
+            {["Generative AI for Medicine", "Wearable Sensing", "Biomedical Signal Processing"].map((tag) => (
               <span key={tag} className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
                 {tag}
               </span>
@@ -1055,8 +1055,8 @@ function Hero() {
             />
           </motion.h1>
 
-          <p className="mt-4 sm:mt-5 max-w-xl text-slate-300 text-sm sm:text-base">
-            Exploring the intersection of electronics and intelligence — from embedded ML and biomedical signal processing to IoT and PCB design. I build solutions, experiment with ideas, and document the process here.
+          <p className="mt-4 sm:mt-5 max-w-xl text-slate-300 text-sm sm:text-base leading-relaxed">
+            Trustworthy generative AI for medicine and lightweight AI for wearables. Expertise spans biomedical signal acquisition, embedded firmware, and on-device inference, from analog front-end design to models running on a microcontroller.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-6 sm:gap-10">
