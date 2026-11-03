@@ -6,7 +6,9 @@
   "homepage": "https://cipherbyte001.github.io/portfolio/",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/fetch-cms.mjs",
     "build": "vite build",
+    "snapshot": "node scripts/fetch-cms.mjs",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"

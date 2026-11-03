@@ -12,16 +12,42 @@
 import { projects as STATIC_PROJECTS } from '../data/projects.js';
 import { research as STATIC_RESEARCH } from '../data/research.js';
 import { achievements as STATIC_ACHIEVEMENTS } from '../data/achievements.js';
+import snapshot from '../data/cms-snapshot.json';
 
 const CMS_URL = import.meta.env.VITE_CMS_URL || 'https://portfolio-cms-rpmi.onrender.com';
+const BASE_URL = import.meta.env.BASE_URL || '/';
+
+// Build-time snapshot of the CMS (see scripts/fetch-cms.mjs). This ships inside the
+// bundle, so first paint never waits on Render waking up from its free-tier sleep.
+const SNAPSHOT_DATA = snapshot?.data || {};
+const MIRRORED_MEDIA = new Set(snapshot?.mirroredMedia || []);
+
+// A visitor should never sit waiting on a cold CMS — we already hold good content,
+// so give the network a short window and move on. The next visit picks up edits.
+const REQUEST_TIMEOUT_MS = 4000;
+const RETRY_DELAY_MS = 1200;
+
+function readLocalCache(path) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const cached = localStorage.getItem('cms_cache_' + path);
+      if (cached) return JSON.parse(cached);
+    }
+  } catch {}
+  return null;
+}
 
 // ─── Generic fetch helper ─────────────────────────────────────────────────────
+// Fallback ladder: live CMS → this browser's last good copy → build-time snapshot.
 async function cmsGet(path, attempt = 1) {
-  if (!CMS_URL) return null; // No CMS configured → use static fallback
+  if (!CMS_URL) return SNAPSHOT_DATA[path] ?? null;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
     const res = await fetch(`${CMS_URL}/api${path}`, {
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
     });
     if (!res.ok) throw new Error(`CMS ${path} → ${res.status}`);
     const data = await res.json();
@@ -33,29 +59,34 @@ async function cmsGet(path, attempt = 1) {
     return data;
   } catch (err) {
     if (attempt < 2) {
-      await new Promise((r) => setTimeout(r, 1200));
+      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
       return cmsGet(path, attempt + 1);
     }
-    console.warn('[CMS] Fetch failed, using cached/static fallback:', err.message);
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const cached = localStorage.getItem('cms_cache_' + path);
-        if (cached) return JSON.parse(cached);
-      }
-    } catch {}
-    return null;
+    console.warn('[CMS] Live fetch failed, serving cached/snapshot content:', err.message);
+    return readLocalCache(path) ?? SNAPSHOT_DATA[path] ?? null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 // ─── Helper: build full media URL from a Payload media object ────────────────
+// Prefers our own mirrored copy (served from this site's CDN) over the CMS host,
+// which both avoids the cold-start wait and survives Render wiping its disk.
+function resolveMedia(rawUrl) {
+  const url = String(rawUrl);
+  const filename = decodeURIComponent(url.split('/').pop().split('?')[0] || '');
+  if (filename && MIRRORED_MEDIA.has(filename)) return `${BASE_URL}cms-media/${filename}`;
+  if (url.startsWith('http')) return url;
+  return `${CMS_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+}
+
 export function mediaUrl(mediaObj) {
   if (!mediaObj) return null;
-  if (typeof mediaObj === 'string') return mediaObj;
+  if (typeof mediaObj === 'string') return resolveMedia(mediaObj);
   // Payload returns { url: '/media/file.jpg', ... }
   const url = mediaObj?.url || mediaObj?.sizes?.card?.url || '';
   if (!url) return null;
-  if (url.startsWith('http')) return url;
-  return `${CMS_URL}${url}`;
+  return resolveMedia(url);
 }
 
 // ─── Projects ────────────────────────────────────────────────────────────────

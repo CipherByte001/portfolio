@@ -1,0 +1,98 @@
+{
+  "generatedAt": "2026-11-03T06:40:03.826Z",
+  "cmsUrl": "https://portfolio-cms-rpmi.onrender.com",
+  "mirroredMedia": [],
+  "data": {
+    "/projects?limit=100&sort=order": {
+      "docs": [],
+      "totalDocs": 0,
+      "limit": 100,
+      "totalPages": 1,
+      "page": 1,
+      "pagingCounter": 1,
+      "hasPrevPage": false,
+      "hasNextPage": false,
+      "prevPage": null,
+      "nextPage": null
+    },
+    "/research?limit=100&sort=order": {
+      "docs": [
+        {
+          "id": "6adf032e0006fa9c7b2d5d45",
+          "_status": "published",
+          "title": "qnjsnjand",
+          "excerpt": "sjndjdsjdnd",
+          "tags": [],
+          "order": 99,
+          "createdAt": "2026-10-26T07:37:18.309Z",
+          "updatedAt": "2026-10-26T07:37:18.309Z"
+        }
+      ],
+      "totalDocs": 1,
+      "limit": 100,
+      "totalPages": 1,
+      "page": 1,
+      "pagingCounter": 1,
+      "hasPrevPage": false,
+      "hasNextPage": false,
+      "prevPage": null,
+      "nextPage": null
+    },
+    "/skills?limit=200&sort=order": {
+      "docs": [],
+      "totalDocs": 0,
+      "limit": 200,
+      "totalPages": 1,
+      "page": 1,
+      "pagingCounter": 1,
+      "hasPrevPage": false,
+      "hasNextPage": false,
+      "prevPage": null,
+      "nextPage": null
+    },
+    "/achievements?limit=100&sort=order": {
+      "docs": [],
+      "totalDocs": 0,
+      "limit": 100,
+      "totalPages": 1,
+      "page": 1,
+      "pagingCounter": 1,
+      "hasPrevPage": false,
+      "hasNextPage": false,
+      "prevPage": null,
+      "nextPage": null
+    },
+    "/recommendations?limit=100&sort=order": {
+      "docs": [],
+      "totalDocs": 0,
+      "limit": 100,
+      "totalPages": 1,
+      "page": 1,
+      "pagingCounter": 1,
+      "hasPrevPage": false,
+      "hasNextPage": false,
+      "prevPage": null,
+      "nextPage": null
+    },
+    "/globals/about": {},
+    "/globals/resume": {
+      "pdf": {
+        "id": "6ae2f78ee334fc7d7ba46924",
+        "filename": "Eitmam_Omar_Sanam_CV.pdf",
+        "mimeType": "application/pdf",
+        "filesize": 52571,
+        "sizes": {
+          "thumbnail": {},
+          "card": {}
+        },
+        "createdAt": "2026-10-29T07:36:46.779Z",
+        "updatedAt": "2026-10-29T07:36:46.779Z",
+        "url": "https://portfolio-cms-rpmi.onrender.com/media/Eitmam_Omar_Sanam_CV.pdf"
+      },
+      "createdAt": "2026-10-29T07:36:52.290Z",
+      "globalType": "resume",
+      "updatedAt": "2026-10-29T07:36:52.290Z",
+      "id": "6ae2f794e334fc7d7ba4692b"
+    }
+  }
+}

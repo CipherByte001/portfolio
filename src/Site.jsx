@@ -43,14 +43,20 @@ function useCMS(fetcher, staticFallback, cacheKey) {
     setLoading(true);
     fetcher()
       .then((d) => {
-        if (d !== null && d !== undefined) {
-          setData(d);
+        if (d === null || d === undefined) return;
+        // An empty result usually means the CMS was unreachable and we fell through
+        // to an empty static default — never let that blank out content we already have.
+        setData((prev) => {
+          const incomingIsEmpty = Array.isArray(d) && d.length === 0;
+          const haveSomething = Array.isArray(prev) && prev.length > 0;
+          if (incomingIsEmpty && haveSomething) return prev;
           if (typeof window !== 'undefined' && window.localStorage) {
             try {
               localStorage.setItem('s_cms_' + key, JSON.stringify(d));
             } catch {}
           }
-        }
+          return d;
+        });
       })
       .catch(() => {})
       .finally(() => setLoading(false));
